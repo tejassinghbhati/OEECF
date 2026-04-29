@@ -42,6 +42,12 @@ class EconParameters(BaseModel):
     sick_productivity_factor: float = Field(0.10, description="Productivity factor for infectious people who are still working (often close to 0)")
     quarantine_productivity_factor: float = Field(0.50, description="Productivity of quarantined healthy individuals (depends on remote work)")
     hospitalization_productivity_factor: float = Field(0.0, description="Productivity of hospitalized individuals (always 0)")
+    
+    # Healthcare Capacity Dynamics
+    hospital_capacity: float = Field(0.05, description="Fraction of population that can be hospitalized before capacity is breached")
+    base_fatality_rate: float = Field(0.02, description="Base fatality rate for hospitalized individuals")
+    overflow_fatality_multiplier: float = Field(3.0, description="Multiplier for fatality rate when hospital capacity is breached")
+    
     sectors: Dict[str, SectorProfile] = Field(default_factory=dict, description="Optional sector-specific profiles")
 
 class MacroShocks(BaseModel):
