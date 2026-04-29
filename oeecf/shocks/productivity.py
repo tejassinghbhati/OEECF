@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from ..models import EpiData, EconParameters
 
 def calculate_productivity_shock(epi_data: EpiData, params: EconParameters, labour_multipliers: List[float] = None) -> Dict[str, List[float]]:
