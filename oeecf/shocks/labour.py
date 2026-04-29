@@ -29,6 +29,8 @@ def calculate_labour_supply_shock(epi_data: EpiData, params: EconParameters) -> 
     sick_away_fraction = 0.9 
     # Fraction of quarantined who cannot work remotely
     cannot_remote_fraction = 1.0 - params.remote_work_capacity
+    
+    cumulative_excess_deaths = 0.0
 
     for i in range(len(epi_data.time)):
         h = epi_data.hospitalized[i] if epi_data.hospitalized else 0.0
@@ -36,8 +38,19 @@ def calculate_labour_supply_shock(epi_data: EpiData, params: EconParameters) -> 
         q = epi_data.quarantined[i] if epi_data.quarantined else 0.0
         infected = epi_data.infectious[i]
         
+        # Healthcare Capacity Dynamics
+        # If hospitalizations exceed capacity, mortality spikes non-linearly.
+        if h > params.hospital_capacity:
+            overflow = h - params.hospital_capacity
+            # Calculate excess deaths for this time step (assuming time steps are small enough e.g., daily)
+            excess_deaths_today = overflow * params.base_fatality_rate * params.overflow_fatality_multiplier
+            cumulative_excess_deaths += excess_deaths_today
+        
+        # Total deceased is original deceased + our calculated excess deaths
+        adjusted_d = d + cumulative_excess_deaths
+        
         # Reduction in workforce fraction
-        reduction = h + d + (infected * sick_away_fraction) + (q * cannot_remote_fraction)
+        reduction = h + adjusted_d + (infected * sick_away_fraction) + (q * cannot_remote_fraction)
         
         # Ensure it doesn't go below 0 (can't have negative labor)
         multiplier = max(0.0, 1.0 - reduction)
