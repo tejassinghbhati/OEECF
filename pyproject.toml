@@ -25,3 +25,6 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/tejassinghbhati/MUIOGO"
+
+[project.scripts]
+oeecf = "oeecf.cli:main"

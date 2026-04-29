@@ -34,14 +34,17 @@ class OGCoreTranslator:
         # or we just pass them as a generic time series.
         
         ogcore_params = {
-            "Z": shocks.productivity_multiplier,
-            # There isn't a direct "labor supply multiplier" in OG-Core, 
-            # usually it's handled via the time endowment (omega) or disutility of labor (chi_n).
-            # We provide it as a custom parameter that an extended OG-Core could read,
-            # or map it to a recognized parameter.
             "labor_endowment_multiplier": shocks.labor_supply_multiplier,
             "start_year": self.start_year
         }
+        
+        # If there's only a 'global' sector, map it to the standard 'Z' parameter.
+        # Otherwise, prefix with 'Z_' for each sector.
+        if "global" in shocks.productivity_multiplier and len(shocks.productivity_multiplier) == 1:
+            ogcore_params["Z"] = shocks.productivity_multiplier["global"]
+        else:
+            for sector_name, multipliers in shocks.productivity_multiplier.items():
+                ogcore_params[f"Z_{sector_name}"] = multipliers
         
         return ogcore_params
         

@@ -1,0 +1,2 @@
+[console_scripts]
+oeecf = oeecf.cli:main

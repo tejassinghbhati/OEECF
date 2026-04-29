@@ -24,16 +24,25 @@ class EpiData(BaseModel):
             if val is not None and len(val) != length:
                 raise ValueError(f"Length of {attr} ({len(val)}) does not match length of time ({length})")
 
+class SectorProfile(BaseModel):
+    """
+    Economic parameters specific to a single sector.
+    """
+    remote_work_capacity: float = Field(..., description="Fraction of jobs that can be done remotely in this sector")
+    remote_work_efficiency: float = Field(0.80, description="Relative efficiency of remote work compared to in-person")
+
+
 class EconParameters(BaseModel):
     """
     Baseline economic parameters used to calculate shocks.
     """
     baseline_participation_rate: float = Field(0.65, description="Baseline fraction of total population in the labor force")
-    remote_work_capacity: float = Field(0.35, description="Fraction of jobs that can be done remotely")
-    remote_work_efficiency: float = Field(0.80, description="Relative efficiency of remote work compared to in-person (1.0 = equal)")
+    remote_work_capacity: float = Field(0.35, description="Global fraction of jobs that can be done remotely")
+    remote_work_efficiency: float = Field(0.80, description="Global relative efficiency of remote work compared to in-person (1.0 = equal)")
     sick_productivity_factor: float = Field(0.10, description="Productivity factor for infectious people who are still working (often close to 0)")
     quarantine_productivity_factor: float = Field(0.50, description="Productivity of quarantined healthy individuals (depends on remote work)")
     hospitalization_productivity_factor: float = Field(0.0, description="Productivity of hospitalized individuals (always 0)")
+    sectors: Dict[str, SectorProfile] = Field(default_factory=dict, description="Optional sector-specific profiles")
 
 class MacroShocks(BaseModel):
     """
@@ -42,4 +51,4 @@ class MacroShocks(BaseModel):
     """
     time: List[int]
     labor_supply_multiplier: List[float] = Field(..., description="Multiplier for baseline labor supply (L)")
-    productivity_multiplier: List[float] = Field(..., description="Multiplier for Total Factor Productivity (A or Z)")
+    productivity_multiplier: Dict[str, List[float]] = Field(..., description="Multiplier for Total Factor Productivity by sector (or 'global')")
