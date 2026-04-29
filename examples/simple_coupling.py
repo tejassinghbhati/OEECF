@@ -46,11 +46,16 @@ def main():
     epi_data = generate_synthetic_epi_data(days=100)
     
     print("Initializing OEECF Coupler...")
+    from oeecf.models import SectorProfile
+    
+    sectors = {
+        "manufacturing": SectorProfile(remote_work_capacity=0.10, remote_work_efficiency=0.50),
+        "services": SectorProfile(remote_work_capacity=0.85, remote_work_efficiency=0.90)
+    }
+    
     params = EconParameters(
         baseline_participation_rate=0.65,
-        remote_work_capacity=0.40,  # 40% can work from home
-        remote_work_efficiency=0.85, # WFH is 85% as efficient
-        sick_productivity_factor=0.20 # Sick people are 20% productive
+        sectors=sectors
     )
     
     coupler = EpiEconCoupler(params=params)
@@ -72,9 +77,12 @@ def main():
     
     plt.plot(epi_data.time, epi_data.infectious, label='Infectious Fraction', color='red', linestyle='--')
     plt.plot(shocks.time, shocks.labor_supply_multiplier, label='Labor Supply Multiplier', color='blue')
-    plt.plot(shocks.time, shocks.productivity_multiplier, label='Productivity Multiplier', color='green')
     
-    plt.title('Epidemiological Shocks to Macroeconomic Variables')
+    colors = ['green', 'orange', 'purple']
+    for idx, (sector_name, multipliers) in enumerate(shocks.productivity_multiplier.items()):
+        plt.plot(shocks.time, multipliers, label=f'Productivity ({sector_name})', color=colors[idx % len(colors)])
+    
+    plt.title('Epidemiological Shocks to Macroeconomic Variables (Sectoral)')
     plt.xlabel('Time (Days)')
     plt.ylabel('Multiplier / Fraction')
     plt.ylim(0, 1.1)
