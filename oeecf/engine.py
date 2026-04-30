@@ -1,6 +1,7 @@
 from .models import EpiData, EconParameters, MacroShocks
 from .shocks.labour import calculate_labour_supply_shock
 from .shocks.productivity import calculate_productivity_shock
+from .shocks.demand import calculate_demand_shock
 
 class EpiEconCoupler:
     """
@@ -27,10 +28,14 @@ class EpiEconCoupler:
         # Calculate Productivity Shock
         prod_multipliers = calculate_productivity_shock(epi_data, self.params, labor_multipliers)
         
+        # Calculate Demand Shock
+        demand_multipliers = calculate_demand_shock(epi_data, self.params)
+        
         shocks = MacroShocks(
             time=epi_data.time,
             labor_supply_multiplier=labor_multipliers,
-            productivity_multiplier=prod_multipliers
+            productivity_multiplier=prod_multipliers,
+            demand_multiplier=demand_multipliers
         )
         
         return shocks

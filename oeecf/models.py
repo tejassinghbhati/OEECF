@@ -48,6 +48,9 @@ class EconParameters(BaseModel):
     base_fatality_rate: float = Field(0.02, description="Base fatality rate for hospitalized individuals")
     overflow_fatality_multiplier: float = Field(3.0, description="Multiplier for fatality rate when hospital capacity is breached")
     
+    # Demand Dynamics
+    fear_factor_multiplier: float = Field(0.5, description="Reduction in demand per infected population percentage point")
+    
     sectors: Dict[str, SectorProfile] = Field(default_factory=dict, description="Optional sector-specific profiles")
 
 class MacroShocks(BaseModel):
@@ -58,3 +61,4 @@ class MacroShocks(BaseModel):
     time: List[int]
     labor_supply_multiplier: List[float] = Field(..., description="Multiplier for baseline labor supply (L)")
     productivity_multiplier: Dict[str, List[float]] = Field(..., description="Multiplier for Total Factor Productivity by sector (or 'global')")
+    demand_multiplier: Optional[List[float]] = Field(None, description="Multiplier for baseline consumption demand")
