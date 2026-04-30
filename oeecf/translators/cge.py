@@ -19,6 +19,9 @@ class CGETranslator:
             "delta_L": [round(m - 1.0, 4) for m in shocks.labor_supply_multiplier],
         }
         
+        if shocks.demand_multiplier:
+            cge_params["delta_D"] = [round(m - 1.0, 4) for m in shocks.demand_multiplier]
+        
         # Sectoral TFP changes
         delta_A = {}
         for sector_name, multipliers in shocks.productivity_multiplier.items():

@@ -38,6 +38,9 @@ class OGCoreTranslator:
             "start_year": self.start_year
         }
         
+        if shocks.demand_multiplier:
+            ogcore_params["demand_multiplier"] = shocks.demand_multiplier
+        
         # If there's only a 'global' sector, map it to the standard 'Z' parameter.
         # Otherwise, prefix with 'Z_' for each sector.
         if "global" in shocks.productivity_multiplier and len(shocks.productivity_multiplier) == 1:
