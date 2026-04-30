@@ -3,13 +3,24 @@ import sys
 import os
 import json
 import numpy as np
+import logging
 
 from .models import EpiData, EconParameters, SectorProfile
 from .engine import EpiEconCoupler
 from .translators.ogcore import OGCoreTranslator
 
+def setup_logger(verbose=False):
+    """Configures the root logger based on verbosity."""
+    level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
 def generate_synthetic_epi_data(days=100):
     """Generates synthetic SIR data for the CLI demo."""
+    logging.debug(f"Generating synthetic epi data for {days} days")
     t = np.arange(days)
     peak_day = days * 0.4
     spread = days * 0.15
@@ -30,7 +41,7 @@ def generate_synthetic_epi_data(days=100):
     )
 
 def run_simulation(args):
-    print(f"Running simulation for {args.days} days...")
+    logging.info(f"Running simulation for {args.days} days...")
     epi_data = generate_synthetic_epi_data(days=args.days)
     
     # Setup Sector Profiles
@@ -44,15 +55,19 @@ def run_simulation(args):
         sectors=sectors
     )
     
+    logging.debug("Initializing EpiEconCoupler")
     coupler = EpiEconCoupler(params=params)
     shocks = coupler.generate_shocks(epi_data)
     
+    logging.debug(f"Exporting to OG-Core JSON format (start_year={args.start_year})")
     translator = OGCoreTranslator(start_year=args.start_year)
     translator.export_json(shocks, args.output)
-    print(f"Exported macroeconomic shocks to {args.output}")
+    logging.info(f"Exported macroeconomic shocks to {args.output}")
 
 def main():
     parser = argparse.ArgumentParser(description="OEECF Command Line Interface")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
+    
     subparsers = parser.add_subparsers(dest="command", required=True)
     
     run_parser = subparsers.add_parser("run-simulation", help="Run a synthetic coupling simulation")
@@ -61,6 +76,7 @@ def main():
     run_parser.add_argument("--output", type=str, default="ogcore_shocks.json", help="Output JSON file path")
     
     args = parser.parse_args()
+    setup_logger(args.verbose)
     
     if args.command == "run-simulation":
         run_simulation(args)
