@@ -23,6 +23,11 @@ dependencies = [
     "matplotlib"
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
 [project.urls]
 "Homepage" = "https://github.com/tejassinghbhati/MUIOGO"
 
