@@ -1,5 +1,6 @@
 from typing import List
 from ..models import EpiData, EconParameters
+from .. import constants
 
 def calculate_demand_shock(epi_data: EpiData, params: EconParameters) -> List[float]:
     """
@@ -16,10 +17,10 @@ def calculate_demand_shock(epi_data: EpiData, params: EconParameters) -> List[fl
     multipliers = []
     
     # How much demand drops per infected percentage point (social distancing)
-    fear_factor = getattr(params, 'fear_factor_multiplier', 0.5)
+    fear_factor = getattr(params, 'fear_factor_multiplier', constants.DEFAULT_FEAR_FACTOR)
     
     # How much demand drops for someone in quarantine
-    quarantine_drop = 0.8
+    quarantine_drop = constants.QUARANTINE_DEMAND_DROP
     
     for i in range(len(epi_data.time)):
         infected = epi_data.infectious[i]
@@ -28,7 +29,7 @@ def calculate_demand_shock(epi_data: EpiData, params: EconParameters) -> List[fl
         reduction = (infected * fear_factor) + (q * quarantine_drop)
         
         # Demand shouldn't drop below a minimum subsistence level (e.g. 0.2)
-        multiplier = max(0.2, 1.0 - reduction)
+        multiplier = max(constants.MINIMUM_SUBSISTENCE_DEMAND, 1.0 - reduction)
         multipliers.append(multiplier)
         
     return multipliers

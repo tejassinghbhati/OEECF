@@ -1,11 +1,12 @@
 from typing import List, Dict
 from ..models import EpiData, EconParameters
+from .. import constants
 
 def calculate_productivity_shock(epi_data: EpiData, params: EconParameters, labour_multipliers: List[float] = None) -> Dict[str, List[float]]:
     """
     Calculates the Total Factor Productivity (TFP) multiplier for each time step by sector.
     """
-    sick_away_fraction = 0.9 
+    sick_away_fraction = constants.SICK_AWAY_FRACTION 
     sick_efficiency = params.sick_productivity_factor
     
     # Determine the sectors to calculate. If none, use a single 'global' sector

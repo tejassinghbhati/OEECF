@@ -1,5 +1,6 @@
 from typing import List
 from ..models import EpiData, EconParameters
+from .. import constants
 
 def calculate_labour_supply_shock(epi_data: EpiData, params: EconParameters) -> List[float]:
     """
@@ -26,7 +27,7 @@ def calculate_labour_supply_shock(epi_data: EpiData, params: EconParameters) -> 
     multipliers = []
     
     # Assume 90% of infectious people are too sick to work (if not hospitalized)
-    sick_away_fraction = 0.9 
+    sick_away_fraction = constants.SICK_AWAY_FRACTION 
     # Fraction of quarantined who cannot work remotely
     cannot_remote_fraction = 1.0 - params.remote_work_capacity
     
