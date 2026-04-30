@@ -8,6 +8,7 @@ import logging
 from .models import EpiData, EconParameters, SectorProfile
 from .engine import EpiEconCoupler
 from .translators.ogcore import OGCoreTranslator
+from .utils.plotting import plot_shocks
 
 def setup_logger(verbose=False):
     """Configures the root logger based on verbosity."""
@@ -63,10 +64,16 @@ def run_simulation(args):
     translator = OGCoreTranslator(start_year=args.start_year)
     translator.export_json(shocks, args.output)
     logging.info(f"Exported macroeconomic shocks to {args.output}")
+    
+    if args.plot:
+        logging.info("Generating plot...")
+        plot_shocks(epi_data, shocks, save_path="shock_curves.png")
+        logging.info("Plot saved to shock_curves.png")
 
 def main():
     parser = argparse.ArgumentParser(description="OEECF Command Line Interface")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
+    parser.add_argument("--plot", action="store_true", help="Generate and save a plot of the shocks")
     
     subparsers = parser.add_subparsers(dest="command", required=True)
     
