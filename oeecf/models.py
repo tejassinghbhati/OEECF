@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
+from . import constants
 
 class EpiData(BaseModel):
     """
@@ -29,27 +30,27 @@ class SectorProfile(BaseModel):
     Economic parameters specific to a single sector.
     """
     remote_work_capacity: float = Field(..., description="Fraction of jobs that can be done remotely in this sector")
-    remote_work_efficiency: float = Field(0.80, description="Relative efficiency of remote work compared to in-person")
+    remote_work_efficiency: float = Field(constants.DEFAULT_REMOTE_EFFICIENCY, description="Relative efficiency of remote work compared to in-person")
 
 
 class EconParameters(BaseModel):
     """
     Baseline economic parameters used to calculate shocks.
     """
-    baseline_participation_rate: float = Field(0.65, description="Baseline fraction of total population in the labor force")
-    remote_work_capacity: float = Field(0.35, description="Global fraction of jobs that can be done remotely")
-    remote_work_efficiency: float = Field(0.80, description="Global relative efficiency of remote work compared to in-person (1.0 = equal)")
-    sick_productivity_factor: float = Field(0.10, description="Productivity factor for infectious people who are still working (often close to 0)")
-    quarantine_productivity_factor: float = Field(0.50, description="Productivity of quarantined healthy individuals (depends on remote work)")
-    hospitalization_productivity_factor: float = Field(0.0, description="Productivity of hospitalized individuals (always 0)")
+    baseline_participation_rate: float = Field(constants.DEFAULT_PARTICIPATION_RATE, description="Baseline fraction of total population in the labor force")
+    remote_work_capacity: float = Field(constants.DEFAULT_REMOTE_CAPACITY, description="Global fraction of jobs that can be done remotely")
+    remote_work_efficiency: float = Field(constants.DEFAULT_REMOTE_EFFICIENCY, description="Global relative efficiency of remote work compared to in-person (1.0 = equal)")
+    sick_productivity_factor: float = Field(constants.SICK_PRODUCTIVITY_FACTOR, description="Productivity factor for infectious people who are still working (often close to 0)")
+    quarantine_productivity_factor: float = Field(constants.QUARANTINE_PRODUCTIVITY_FACTOR, description="Productivity of quarantined healthy individuals (depends on remote work)")
+    hospitalization_productivity_factor: float = Field(constants.HOSPITALIZATION_PRODUCTIVITY_FACTOR, description="Productivity of hospitalized individuals (always 0)")
     
     # Healthcare Capacity Dynamics
-    hospital_capacity: float = Field(0.05, description="Fraction of population that can be hospitalized before capacity is breached")
-    base_fatality_rate: float = Field(0.02, description="Base fatality rate for hospitalized individuals")
-    overflow_fatality_multiplier: float = Field(3.0, description="Multiplier for fatality rate when hospital capacity is breached")
+    hospital_capacity: float = Field(constants.DEFAULT_HOSPITAL_CAPACITY, description="Fraction of population that can be hospitalized before capacity is breached")
+    base_fatality_rate: float = Field(constants.DEFAULT_BASE_FATALITY_RATE, description="Base fatality rate for hospitalized individuals")
+    overflow_fatality_multiplier: float = Field(constants.OVERFLOW_FATALITY_MULTIPLIER, description="Multiplier for fatality rate when hospital capacity is breached")
     
     # Demand Dynamics
-    fear_factor_multiplier: float = Field(0.5, description="Reduction in demand per infected population percentage point")
+    fear_factor_multiplier: float = Field(constants.DEFAULT_FEAR_FACTOR, description="Reduction in demand per infected population percentage point")
     
     sectors: Dict[str, SectorProfile] = Field(default_factory=dict, description="Optional sector-specific profiles")
 
