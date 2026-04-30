@@ -13,6 +13,12 @@ class CGETranslator:
         """
         Converts the time-series multipliers into percentage changes (deltas).
         For example, a multiplier of 0.95 becomes a delta of -0.05.
+        
+        Args:
+            shocks (MacroShocks): The calculated economic shocks from the EpiEconCoupler.
+            
+        Returns:
+            Dict[str, Any]: A dictionary of CGE-compatible parameters containing `delta_L`, `delta_D`, and `delta_A` variants.
         """
         cge_params = {
             "time": shocks.time,

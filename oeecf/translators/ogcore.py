@@ -8,7 +8,13 @@ class OGCoreTranslator:
     OG-Core typically accepts parameter updates via a JSON dictionary.
     """
     
-    def __init__(self, start_year: int = 2020):
+    def __init__(self, start_year: int = 2020) -> None:
+        """
+        Initializes the OGCoreTranslator.
+
+        Args:
+            start_year (int): The base year from which the shocks begin. Defaults to 2020.
+        """
         self.start_year = start_year
 
     def translate(self, shocks: MacroShocks) -> Dict[str, Any]:
