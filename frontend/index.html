@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OEECF — Open Epidemiological-Economic Coupling Framework</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;1,300&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Reset ─────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ── Tokens ────────────────────────────────────── */
+    :root {
+      --bg:     #070a10;
+      --bg2:    #0d1119;
+      --border: rgba(255,255,255,0.065);
+      --gold:   #c8a84b;
+      --gold-a: rgba(200,168,75,0.10);
+      --gold-b: rgba(200,168,75,0.22);
+      --blue:   #4a9eff;
+      --blue-a: rgba(74,158,255,0.10);
+      --teal:   #2dd4bf;
+      --teal-a: rgba(45,212,191,0.10);
+      --red:    #f87171;
+      --green:  #4ade80;
+      --t1:     #dce4f0;
+      --t2:     #7d8ea8;
+      --t3:     #424f62;
+      --t4:     #252e3d;
+      --mono:   'IBM Plex Mono', 'Courier New', monospace;
+      --sans:   'IBM Plex Sans', 'Helvetica Neue', sans-serif;
+      --cap:    860px;
+    }
+
+    /* ── Base ──────────────────────────────────────── */
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--t1);
+      font-family: var(--sans);
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Dot grid ──────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(rgba(200,168,75,0.032) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Scan line ─────────────────────────────────── */
+    .scan {
+      position: fixed; top: 0; left: 0; width: 100%; height: 120px;
+      background: linear-gradient(to bottom, transparent, rgba(200,168,75,0.016), transparent);
+      animation: scan 12s ease-in-out infinite;
+      pointer-events: none; z-index: 1;
+    }
+    @keyframes scan {
+      0%   { transform: translateY(-120px); }
+      100% { transform: translateY(calc(100vh + 120px)); }
+    }
+
+    /* ── Progress rail ─────────────────────────────── */
+    .rail {
+      position: fixed;
+      left: 22px; top: 50%;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 16px;
+      z-index: 200;
+    }
+    .rail-dot {
+      display: block;
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: var(--t4);
+      transition: background 0.35s, transform 0.35s;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .rail-dot.active { background: var(--gold); transform: scale(1.8); }
+
+    @media (max-width: 900px) { .rail { display: none; } }
+
+    /* ── Fixed header ──────────────────────────────── */
+    .site-hdr {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 36px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7,10,16,0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    .hdr-l, .hdr-r { display: flex; align-items: center; gap: 18px; }
+    .hdr-s { width: 1px; height: 12px; background: var(--border); }
+    .hdr-t {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--t3);
+    }
+    .hdr-t.id { color: var(--gold); font-weight: 500; letter-spacing: 0.22em; }
+    .status-pill { display: flex; align-items: center; gap: 6px; }
+    .status-dot {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--green);
+      animation: blink 2.6s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
+
+    /* ── Content wrapper ───────────────────────────── */
+    .page { position: relative; z-index: 2; }
+
+    /* ── Inner width cap ───────────────────────────── */
+    .inner {
+      max-width: var(--cap);
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+
+    /* ══════════════════════════════════════════════ */
+    /*  HERO                                          */
+    /* ══════════════════════════════════════════════ */
+    .s-hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 120px 0 80px;
+    }
+
+    .hero-inner { max-width: var(--cap); margin: 0 auto; padding: 0 48px; }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 9px; letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 20px;
+    }
+
+    .hero-acronym {
+      font-size: clamp(88px, 12vw, 148px);
+      font-weight: 600; letter-spacing: -0.028em; line-height: 0.86;
+      color: var(--t1); margin-bottom: 28px;
+    }
+
+    .hero-name {
+      font-size: clamp(14px, 1.8vw, 18px);
+      font-weight: 300; line-height: 1.5; color: var(--t2);
+      margin-bottom: 8px; max-width: 560px;
+    }
+    .hero-name strong { color: var(--t1); font-weight: 400; }
+
+    .hero-desc {
+      font-family: var(--mono);
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--t3); margin-bottom: 56px;
+      padding-bottom: 40px; border-bottom: 1px solid var(--border);
+    }
+
+    /* Three stat chips */
+    .hero-stats { display: flex; gap: 0; margin-bottom: 64px; }
+
+    .stat-chip {
+      flex: 1;
+      padding: 20px 24px;
+      border: 1px solid var(--border);
+      border-right: none;
+      background: var(--bg2);
+    }
+    .stat-chip:last-child { border-right: 1px solid var(--border); }
+
+    .sc-tag {
+      font-family: var(--mono);
+      font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--t3); margin-bottom: 8px;
+    }
+    .sc-val {
+      font-family: var(--mono);
+      font-size: 28px; font-weight: 500; line-height: 1;
+      letter-spacing: -0.02em; margin-bottom: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .sc-val.labour { color: var(--gold); }
+    .sc-val.tfp    { color: var(--blue); }
+    .sc-val.demand { color: var(--teal); }
+    .sc-label {
+      font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.1em; color: var(--t2);
+    }
+
+    /* Scroll cue */
+    .scroll-cue {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--mono); font-size: 8.5px;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--t3);
+    }
+    .scroll-cue::before {
+      content: '';
+      width: 1px; height: 32px;
+      background: linear-gradient(to bottom, transparent, var(--t3));
+      animation: pulse-line 2s ease-in-out infinite;
+    }
+    @keyframes pulse-line { 0%,100% { opacity:0.4; } 50% { opacity:1; } }
+
+    /* ══════════════════════════════════════════════ */
+    /*  DOCUMENT SECTIONS                             */
+    /* ══════════════════════════════════════════════ */
+    .doc-sec {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Section header row */
+    .sec-hdr {
+      display: flex; align-items: baseline; gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .sec-num {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 0.28em; color: var(--t3);
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    .sec-rule {
+      flex: 1; height: 1px;
+      background: var(--border);
+    }
+
+    .sec-h {
+      font-size: 11px; font-weight: 400; letter-spacing: 0.04em;
+      color: var(--t2); white-space: nowrap;
+    }
+
+    /* ── §01 Problem ───────────────────────────────── */
+    .problem-body {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+      align-items: start;
+    }
+    .problem-text p {
+      font-size: 13px; line-height: 1.9; color: var(--t2);
+      margin-bottom: 16px;
+    }
+    .problem-text p:last-child { margin-bottom: 0; }
+    .problem-text em { color: var(--t1); font-style: normal; }
+
+    .silo-vis {
+      display: flex; align-items: center; gap: 20px;
+      padding: 32px 24px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .silo-box {
+      flex: 1;
+      padding: 20px 16px;
+      border: 1px solid var(--border);
+    }
+    .silo-box-title {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--t2); margin-bottom: 12px;
+    }
+    .silo-box-items { display: flex; flex-direction: column; gap: 5px; }
+    .silo-item {
+      font-family: var(--mono); font-size: 9.5px;
+      color: var(--t3); letter-spacing: 0.06em;
+    }
+    .silo-cross {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      flex-shrink: 0;
+    }
+    .silo-cross-line { width: 1px; height: 20px; background: var(--t4); }
+    .silo-cross-x {
+      font-family: var(--mono); font-size: 13px;
+      color: var(--red); opacity: 0.6;
+    }
+    .silo-caption {
+      margin-top: 12px;
+      font-family: var(--mono); font-size: 8px;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--t4);
+      text-align: center;
+    }
+
+    /* ── §02 Architecture ──────────────────────────── */
+    .arch-pipe {
+      margin-bottom: 40px;
+      padding: 32px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .arch-pipe-label {
+      font-family: var(--mono); font-size: 8px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--t4); margin-bottom: 28px;
+    }
+    .pipe-svg { width: 100%; overflow: visible; }
+
+    .arch-legend {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      border: 1px solid var(--border);
+    }
+    .arch-leg-item {
+      padding: 14px 18px;
+      border-right: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .arch-leg-item:last-child { border-right: none; }
+    .arch-leg-name {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 0.1em; color: var(--t1);
+      margin-bottom: 4px;
+    }
+    .arch-leg-desc {
+      font-size: 11px; line-height: 1.6; color: var(--t3);
+    }
+
+    /* ── §03 Shocks ────────────────────────────────── */
+    .shock-entry { padding: 48px 0; border-top: 1px solid var(--border); }
+    .shock-entry:first-child { border-top: none; padding-top: 0; }
+
+    .shock-entry-hdr {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+    }
+    .shock-entry-bar { width: 20px; height: 1px; }
+    .shock-entry-bar.l { background: var(--gold); }
+    .shock-entry-bar.t { background: var(--blue); }
+    .shock-entry-bar.d { background: var(--teal); }
+    .shock-entry-tag {
+      font-family: var(--mono); font-size: 8.5px;
+      letter-spacing: 0.24em; text-transform: uppercase; color: var(--t3);
+    }
+
+    .shock-entry-name {
+      font-size: 20px; font-weight: 400; letter-spacing: 0.005em;
+      color: var(--t1); margin-bottom: 16px;
+    }
+
+    .shock-formula-block {
+      display: inline-block;
+      font-family: var(--mono); font-size: 13px;
+      font-style: italic; letter-spacing: 0.04em;
+      color: var(--t1); padding: 14px 20px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      margin-bottom: 36px;
+    }
+
+    .shock-split {
+      display: grid; grid-template-columns: 1fr 320px; gap: 48px;
+      align-items: start;
+    }
+
+    .shock-text p {
+      font-size: 12.5px; line-height: 1.9; color: var(--t2);
+      margin-bottom: 16px;
+    }
+    .shock-text em { color: var(--t1); font-style: normal; }
+
+    .shock-components { margin-top: 24px; }
+    .shock-comp-title {
+      font-family: var(--mono); font-size: 8px;
+      letter-spacing: 0.24em; text-transform: uppercase;
+      color: var(--t4); margin-bottom: 10px;
+    }
+    .shock-comp-row {
+      display: grid; grid-template-columns: 56px 1fr auto;
+      gap: 12px; align-items: baseline;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .shock-comp-row:last-child { border-bottom: none; }
+    .comp-sym {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.06em; color: var(--t1); font-style: italic;
+    }
+    .comp-desc {
+      font-size: 11.5px; color: var(--t2); line-height: 1.4;
+    }
+    .comp-val {
+      font-family: var(--mono); font-size: 10px; color: var(--t3);
+      white-space: nowrap;
+    }
+
+    .shock-graph-wrap {
+      padding: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .shock-graph-label {
+      font-family: var(--mono); font-size: 7.5px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--t4); margin-bottom: 12px;
+    }
+    .shock-graph-svg { width: 100%; height: 120px; overflow: visible; }
+    .shock-graph-meta {
+      margin-top: 10px;
+      display: flex; justify-content: space-between;
+    }
+    .sgm {
+      font-family: var(--mono); font-size: 8px;
+      letter-spacing: 0.1em; color: var(--t4);
+    }
+    .sgm span { color: var(--t2); }
+
+    /* ── §04 Parameters ────────────────────────────── */
+    .params-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+      border: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    .param-row {
+      display: grid; grid-template-columns: 1fr auto auto;
+      gap: 24px; align-items: center;
+      padding: 16px 20px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+    .param-row:nth-child(odd) { border-right: 1px solid var(--border); }
+    .param-row:nth-last-child(-n+2) { border-bottom: none; }
+    .pr-key {
+      font-family: var(--mono); font-size: 9px;
+      letter-spacing: 0.12em; color: var(--t1);
+    }
+    .pr-desc { font-size: 11px; color: var(--t3); }
+    .pr-val {
+      font-family: var(--mono); font-size: 12px;
+      font-weight: 500; color: var(--t2);
+      white-space: nowrap;
+    }
+
+    .compat-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+      border: 1px solid var(--border);
+    }
+    .compat-cell {
+      padding: 20px;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+    }
+    .compat-cell:last-child { border-right: none; }
+    .compat-name {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.06em; color: var(--t1);
+      margin-bottom: 4px;
+    }
+    .compat-name.og   { color: var(--blue); }
+    .compat-name.cge  { color: var(--teal); }
+    .compat-name.sir  { color: var(--gold); }
+    .compat-name.seir { color: var(--gold); }
+    .compat-desc { font-size: 11px; color: var(--t3); line-height: 1.5; }
+
+    /* ── Footer ────────────────────────────────────── */
+    .site-ftr {
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+    }
+    .ftr-inner {
+      max-width: var(--cap); margin: 0 auto; padding: 0 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .ftr-l { display: flex; flex-direction: column; gap: 4px; }
+    .ftr-t { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.1em; color: var(--t3); }
+    .ftr-t.id { color: var(--gold); font-weight: 500; letter-spacing: 0.2em; }
+    .ftr-r { display: flex; gap: 20px; align-items: center; }
+    .ftr-badge {
+      font-family: var(--mono); font-size: 8px;
+      letter-spacing: 0.12em; padding: 3px 8px;
+      border: 1px solid var(--border); color: var(--t3);
+    }
+
+    /* ── Reveal animation ──────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(22px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-d1 { transition-delay: 0.08s; }
+    .reveal-d2 { transition-delay: 0.16s; }
+    .reveal-d3 { transition-delay: 0.24s; }
+  </style>
+</head>
+
+<body>
+  <div class="scan"></div>
+
+  <!-- Progress rail -->
+  <nav class="rail" aria-label="Document sections">
+    <a class="rail-dot active" href="#hero"  data-sec="hero"  title="Introduction"></a>
+    <a class="rail-dot"        href="#s01"   data-sec="s01"   title="Problem"></a>
+    <a class="rail-dot"        href="#s02"   data-sec="s02"   title="Architecture"></a>
+    <a class="rail-dot"        href="#s03"   data-sec="s03"   title="Shock Vectors"></a>
+    <a class="rail-dot"        href="#s04"   data-sec="s04"   title="Configuration"></a>
+  </nav>
+
+  <!-- Fixed header -->
+  <header class="site-hdr">
+    <div class="hdr-l">
+      <span class="hdr-t id">OEECF</span>
+      <div class="hdr-s"></div>
+      <span class="hdr-t">SYS · 001</span>
+      <div class="hdr-s"></div>
+      <span class="hdr-t">v 0.1.0</span>
+      <div class="hdr-s"></div>
+      <span class="hdr-t">Middleware Architecture</span>
+    </div>
+    <div class="hdr-r">
+      <span class="hdr-t status-pill"><span class="status-dot"></span>Nominal</span>
+      <div class="hdr-s"></div>
+      <span class="hdr-t">Python 3.10+</span>
+      <div class="hdr-s"></div>
+      <span class="hdr-t">MIT · 2024</span>
+    </div>
+  </header>
+
+  <div class="page">
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- §0 HERO                                    -->
+    <!-- ══════════════════════════════════════════ -->
+    <section id="hero" class="s-hero">
+      <div class="hero-inner">
+
+        <div class="eyebrow">Open Framework · Epidemiological–Economic</div>
+
+        <h1 class="hero-acronym">OEECF</h1>
+
+        <h2 class="hero-name">
+          <strong>Open Epidemiological–Economic</strong><br>
+          Coupling Framework
+        </h2>
+
+        <p class="hero-desc">
+          Middleware architecture &nbsp;·&nbsp; Soft-linking translation layer &nbsp;·&nbsp; Epi–Macro shock vectors
+        </p>
+
+        <div class="hero-stats">
+          <div class="stat-chip">
+            <div class="sc-tag">LSS · L(t) peak</div>
+            <div class="sc-val labour" id="hv-l">—</div>
+            <div class="sc-label">Labour Supply Multiplier</div>
+          </div>
+          <div class="stat-chip">
+            <div class="sc-tag">TFP · Z(t) peak</div>
+            <div class="sc-val tfp" id="hv-z">—</div>
+            <div class="sc-label">Productivity Multiplier</div>
+          </div>
+          <div class="stat-chip">
+            <div class="sc-tag">DS · D(t) peak</div>
+            <div class="sc-val demand" id="hv-d">—</div>
+            <div class="sc-label">Demand Multiplier</div>
+          </div>
+        </div>
+
+        <div class="scroll-cue">Scroll to explore</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- §01 PROBLEM                                -->
+    <!-- ══════════════════════════════════════════ -->
+    <section id="s01" class="doc-sec">
+      <div class="inner">
+
+        <div class="sec-hdr reveal">
+          <span class="sec-num">01</span>
+          <div class="sec-rule"></div>
+          <span class="sec-h">The Structural Silo Problem</span>
+        </div>
+
+        <div class="problem-body">
+          <div class="problem-text reveal reveal-d1">
+            <p>
+              Epidemiological models — SIR, SEIR and their extensions — produce
+              time-series of infection prevalence, hospitalisation burden, and
+              mortality rates. Macroeconomic models — OG-Core, CGE frameworks —
+              operate over <em>labour endowments</em>, <em>total factor productivity</em>,
+              and <em>aggregate demand</em>. These two scientific communities
+              have historically operated in <em>structural isolation</em>.
+            </p>
+            <p>
+              During public health crises, policymakers require real-time
+              feedback loops between disease trajectories and economic output.
+              The absence of a formal translation layer forces analysts to rely
+              on ad-hoc, non-reproducible conversions — typically scalar
+              assumptions applied uniformly to economic parameters without
+              rigorous epidemiological grounding.
+            </p>
+            <p>
+              OEECF resolves this by acting as a <em>soft-linking middleware</em>:
+              it does not permanently couple the two model classes, but
+              systematically translates outputs from the epidemiological layer
+              into mathematically rigorous inputs for any downstream
+              macroeconomic solver.
+            </p>
+          </div>
+
+          <div class="reveal reveal-d2">
+            <div class="silo-vis">
+              <div class="silo-box">
+                <div class="silo-box-title">Epidemiology</div>
+                <div class="silo-box-items">
+                  <div class="silo-item">SIR · SEIR models</div>
+                  <div class="silo-item">R₀ · CFR · IFR</div>
+                  <div class="silo-item">I(t) · H(t) · D(t)</div>
+                  <div class="silo-item">Hospitalisation curves</div>
+                </div>
+              </div>
+              <div class="silo-cross">
+                <div class="silo-cross-line"></div>
+                <div class="silo-cross-x">✕</div>
+                <div class="silo-cross-line"></div>
+              </div>
+              <div class="silo-box">
+                <div class="silo-box-title">Macroeconomics</div>
+                <div class="silo-box-items">
+                  <div class="silo-item">OG-Core · CGE</div>
+                  <div class="silo-item">GDP · TFP · Labour</div>
+                  <div class="silo-item">L(t) · Z(t) · D(t)</div>
+                  <div class="silo-item">Fiscal policy solvers</div>
+                </div>
+              </div>
+            </div>
+            <div class="silo-caption">No formal translation layer exists between these domains</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- §02 ARCHITECTURE                           -->
+    <!-- ══════════════════════════════════════════ -->
+    <section id="s02" class="doc-sec">
+      <div class="inner">
+
+        <div class="sec-hdr reveal">
+          <span class="sec-num">02</span>
+          <div class="sec-rule"></div>
+          <span class="sec-h">Soft-Linking Coupling Architecture</span>
+        </div>
+
+        <div class="arch-pipe reveal reveal-d1">
+          <div class="arch-pipe-label">Coupling Pipeline · Data Flow</div>
+          <!-- SVG pipeline diagram -->
+          <svg class="pipe-svg" viewBox="0 0 820 118" preserveAspectRatio="xMidYMid meet" id="pipe-svg">
+            <defs>
+              <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3z" fill="rgba(255,255,255,0.18)"/>
+              </marker>
+              <marker id="arr-g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3z" fill="rgba(200,168,75,0.55)"/>
+              </marker>
+              <marker id="arr-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3z" fill="rgba(74,158,255,0.55)"/>
+              </marker>
+              <marker id="arr-t" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3z" fill="rgba(45,212,191,0.55)"/>
+              </marker>
+            </defs>
+
+            <!-- Connector 1: EpiData → EpiEconCoupler -->
+            <line x1="142" y1="62" x2="210" y2="62"
+              stroke="rgba(255,255,255,0.16)" stroke-width="1"
+              marker-end="url(#arr)"/>
+
+            <!-- Connector 2: EpiEconCoupler → MacroShocks -->
+            <line x1="400" y1="62" x2="462" y2="62"
+              stroke="rgba(200,168,75,0.45)" stroke-width="1"
+              marker-end="url(#arr-g)"/>
+
+            <!-- Fork: MacroShocks → OG-Core -->
+            <path d="M 608 62 L 648 62 L 648 38 L 688 38"
+              stroke="rgba(74,158,255,0.45)" fill="none" stroke-width="1"
+              marker-end="url(#arr-b)"/>
+            <!-- Fork: MacroShocks → CGE -->
+            <path d="M 648 62 L 648 87 L 688 87"
+              stroke="rgba(45,212,191,0.45)" fill="none" stroke-width="1"
+              marker-end="url(#arr-t)"/>
+
+            <!-- Box: EpiData -->
+            <rect x="10" y="40" width="132" height="44"
+              fill="rgba(13,17,25,0.9)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+            <text x="76" y="59" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#7d8ea8">EpiData</text>
+            <text x="76" y="75" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="8" fill="#404f62">SIR · SEIR</text>
+
+            <!-- Box: EpiEconCoupler (highlighted) -->
+            <rect x="210" y="22" width="190" height="80"
+              fill="rgba(200,168,75,0.06)" stroke="rgba(200,168,75,0.28)" stroke-width="1"/>
+            <text x="305" y="57" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#c8a84b">EpiEconCoupler</text>
+            <text x="305" y="73" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="8" fill="rgba(200,168,75,0.55)">Shock Engine · OEECF Core</text>
+
+            <!-- Box: MacroShocks -->
+            <rect x="462" y="40" width="146" height="44"
+              fill="rgba(13,17,25,0.9)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+            <text x="535" y="59" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="10.5" fill="#7d8ea8">MacroShocks</text>
+            <text x="535" y="75" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="8" fill="#404f62">L(t) · Z(t) · D(t)</text>
+
+            <!-- Box: OG-Core -->
+            <rect x="688" y="22" width="118" height="32"
+              fill="rgba(74,158,255,0.07)" stroke="rgba(74,158,255,0.28)" stroke-width="1"/>
+            <text x="747" y="42" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="10" fill="#4a9eff">OG-Core</text>
+
+            <!-- Box: CGE -->
+            <rect x="688" y="72" width="118" height="32"
+              fill="rgba(45,212,191,0.07)" stroke="rgba(45,212,191,0.28)" stroke-width="1"/>
+            <text x="747" y="92" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="10" fill="#2dd4bf">CGE Model</text>
+
+            <!-- Layer labels -->
+            <text x="76" y="14" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="7.5" fill="#252e3d" letter-spacing="2">INPUT</text>
+            <text x="305" y="14" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="7.5" fill="#252e3d" letter-spacing="2">ENGINE</text>
+            <text x="535" y="14" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="7.5" fill="#252e3d" letter-spacing="2">OUTPUT</text>
+            <text x="747" y="14" text-anchor="middle"
+              font-family="'IBM Plex Mono',monospace" font-size="7.5" fill="#252e3d" letter-spacing="2">TRANSLATORS</text>
+          </svg>
+        </div>
+
+        <div class="arch-legend reveal reveal-d2">
+          <div class="arch-leg-item">
+            <div class="arch-leg-name">EpiData</div>
+            <div class="arch-leg-desc">Pydantic-validated time-series schema. Accepts SIR or SEIR output: S(t), I(t), R(t), H(t), Q(t), D(t) as normalised population fractions.</div>
+          </div>
+          <div class="arch-leg-item">
+            <div class="arch-leg-name">EpiEconCoupler</div>
+            <div class="arch-leg-desc">Core orchestrator. Binds EconParameters, dispatches to three independent shock calculators, returns a validated MacroShocks object.</div>
+          </div>
+          <div class="arch-leg-item">
+            <div class="arch-leg-name">MacroShocks</div>
+            <div class="arch-leg-desc">Output container holding three time-indexed multiplier vectors: labour supply L(t), total factor productivity Z(t), and demand D(t).</div>
+          </div>
+          <div class="arch-leg-item">
+            <div class="arch-leg-name">Translators</div>
+            <div class="arch-leg-desc">OGCoreTranslator serialises to JSON with labour_endowment_multiplier and Z scalars. CGETranslator converts to percentage-change Δ% deltas.</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- §03 SHOCKS                                 -->
+    <!-- ══════════════════════════════════════════ -->
+    <section id="s03" class="doc-sec">
+      <div class="inner">
+
+        <div class="sec-hdr reveal">
+          <span class="sec-num">03</span>
+          <div class="sec-rule"></div>
+          <span class="sec-h">Macroeconomic Shock Derivation</span>
+        </div>
+
+        <!-- Labour -->
+        <div class="shock-entry reveal">
+          <div class="shock-entry-hdr">
+            <div class="shock-entry-bar l"></div>
+            <span class="shock-entry-tag">03.1 &nbsp;·&nbsp; LSS &nbsp;·&nbsp; Labour Supply Shock</span>
+          </div>
+          <div class="shock-entry-name">Labour Supply Multiplier</div>
+          <div class="shock-formula-block">
+            L(t) = max( 0, &nbsp;1 &minus; H(t) &minus; D(t) &minus; &alpha;&thinsp;&middot;&thinsp;I(t) &minus; &beta;&thinsp;&middot;&thinsp;Q(t) )
+          </div>
+          <div class="shock-split">
+            <div class="shock-text">
+              <p>
+                Quantifies the fraction of the effective labour force that
+                remains <em>operational at each time step</em>. Workers exit
+                the productive supply via hospitalisation, death, or critical
+                illness. Quarantined workers are partially recovered through
+                the economy's remote-work capacity.
+              </p>
+              <p>
+                When hospitalisation H(t) exceeds the system's healthcare
+                capacity threshold (default 5 % of population), an
+                <em>overflow fatality multiplier</em> of 3.0× compounds
+                mortality — cascading additional labour losses that
+                accelerate the shock at epidemic peak.
+              </p>
+              <div class="shock-components">
+                <div class="shock-comp-title">Component Variables</div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">H(t)</span>
+                  <span class="comp-desc">Hospitalised population fraction</span>
+                  <span class="comp-val">—</span>
+                </div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">D(t)</span>
+                  <span class="comp-desc">Deceased (cumulative) fraction</span>
+                  <span class="comp-val">—</span>
+                </div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">&alpha; · I(t)</span>
+                  <span class="comp-desc">Infectious workers, sick-at-work factor</span>
+                  <span class="comp-val">&alpha; = 0.90</span>
+                </div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">&beta; · Q(t)</span>
+                  <span class="comp-desc">Quarantined, remote-work adjusted loss</span>
+                  <span class="comp-val">&beta; = 0.65</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="shock-graph-wrap">
+                <div class="shock-graph-label">Simulation output · 180 days · SIR (β=0.30, γ=0.10)</div>
+                <svg class="shock-graph-svg" id="g-labour" viewBox="0 0 280 120" preserveAspectRatio="none"></svg>
+                <div class="shock-graph-meta">
+                  <span class="sgm">Day 0</span>
+                  <span class="sgm">Peak: <span id="gm-l">—</span></span>
+                  <span class="sgm">Day 180</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TFP -->
+        <div class="shock-entry reveal reveal-d1">
+          <div class="shock-entry-hdr">
+            <div class="shock-entry-bar t"></div>
+            <span class="shock-entry-tag">03.2 &nbsp;·&nbsp; TFP &nbsp;·&nbsp; Total Factor Productivity Shock</span>
+          </div>
+          <div class="shock-entry-name">Productivity Multiplier</div>
+          <div class="shock-formula-block">
+            Z(t) = [ &Sigma; w<sub style="font-size:0.75em">i</sub>(t) &thinsp;&middot;&thinsp; p<sub style="font-size:0.75em">i</sub> &thinsp;/&thinsp; W ] &minus; &mu;&thinsp;&middot;&thinsp;I(t)
+          </div>
+          <div class="shock-split">
+            <div class="shock-text">
+              <p>
+                Models aggregate productivity loss by <em>segmenting the
+                workforce into three operational cohorts</em>: normal
+                on-site workers (100 % productivity), remote quarantined
+                workers (80 % efficiency), and sick workers still
+                attending (10 % productivity).
+              </p>
+              <p>
+                A macro-friction penalty &mu;&thinsp;&middot;&thinsp;I(t) captures
+                supply-chain disruption, input delivery failures, and
+                coordination overhead that depresses TFP independently
+                of direct workforce availability — proportional to the
+                <em>infectious fraction</em> at each time step.
+              </p>
+              <div class="shock-components">
+                <div class="shock-comp-title">Component Variables</div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">w<sub style="font-size:0.7em">N</sub></span>
+                  <span class="comp-desc">Normal workers &times; participation rate</span>
+                  <span class="comp-val">p = 1.00</span>
+                </div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">w<sub style="font-size:0.7em">R</sub></span>
+                  <span class="comp-desc">Remote workers &times; participation rate</span>
+                  <span class="comp-val">&eta; = 0.80</span>
+                </div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">w<sub style="font-size:0.7em">S</sub></span>
+                  <span class="comp-desc">Sick workers &times; participation rate</span>
+                  <span class="comp-val">p = 0.10</span>
+                </div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">&mu; · I(t)</span>
+                  <span class="comp-desc">Macro-friction penalty, supply-chain</span>
+                  <span class="comp-val">&mu; = 0.50</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="shock-graph-wrap">
+                <div class="shock-graph-label">Simulation output · 180 days · SIR (β=0.30, γ=0.10)</div>
+                <svg class="shock-graph-svg" id="g-tfp" viewBox="0 0 280 120" preserveAspectRatio="none"></svg>
+                <div class="shock-graph-meta">
+                  <span class="sgm">Day 0</span>
+                  <span class="sgm">Peak: <span id="gm-z">—</span></span>
+                  <span class="sgm">Day 180</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Demand -->
+        <div class="shock-entry reveal reveal-d2">
+          <div class="shock-entry-hdr">
+            <div class="shock-entry-bar d"></div>
+            <span class="shock-entry-tag">03.3 &nbsp;·&nbsp; DS &nbsp;·&nbsp; Demand Shock</span>
+          </div>
+          <div class="shock-entry-name">Consumption Demand Multiplier</div>
+          <div class="shock-formula-block">
+            D(t) = max( 0.20, &nbsp;1 &minus; &phi;&thinsp;&middot;&thinsp;I(t) &minus; 0.8&thinsp;&middot;&thinsp;Q(t) )
+          </div>
+          <div class="shock-split">
+            <div class="shock-text">
+              <p>
+                Captures the contraction in aggregate consumption demand
+                driven by two distinct mechanisms:
+                <em>infection-induced behavioural fear</em> — voluntary
+                reduction in activity by the infectious population — and
+                <em>quarantine-mandated suppression</em>, which mechanically
+                limits consumption capacity.
+              </p>
+              <p>
+                A minimum subsistence floor of 0.20 bounds the multiplier,
+                reflecting the irreducible essential consumption that
+                persists even under complete quarantine — food, healthcare,
+                utilities. The floor prevents economically implausible
+                collapse scenarios in severe epidemic simulations.
+              </p>
+              <div class="shock-components">
+                <div class="shock-comp-title">Component Variables</div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">&phi; · I(t)</span>
+                  <span class="comp-desc">Fear-factor demand suppression</span>
+                  <span class="comp-val">&phi; = 0.50</span>
+                </div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">0.8 · Q(t)</span>
+                  <span class="comp-desc">Quarantine consumption suppression</span>
+                  <span class="comp-val">fixed</span>
+                </div>
+                <div class="shock-comp-row">
+                  <span class="comp-sym">floor</span>
+                  <span class="comp-desc">Minimum subsistence consumption</span>
+                  <span class="comp-val">0.20</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="shock-graph-wrap">
+                <div class="shock-graph-label">Simulation output · 180 days · SIR (β=0.30, γ=0.10)</div>
+                <svg class="shock-graph-svg" id="g-demand" viewBox="0 0 280 120" preserveAspectRatio="none"></svg>
+                <div class="shock-graph-meta">
+                  <span class="sgm">Day 0</span>
+                  <span class="sgm">Peak: <span id="gm-d">—</span></span>
+                  <span class="sgm">Day 180</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- §04 CONFIGURATION                          -->
+    <!-- ══════════════════════════════════════════ -->
+    <section id="s04" class="doc-sec">
+      <div class="inner">
+
+        <div class="sec-hdr reveal">
+          <span class="sec-num">04</span>
+          <div class="sec-rule"></div>
+          <span class="sec-h">Default System Configuration</span>
+        </div>
+
+        <div class="params-grid reveal reveal-d1">
+          <div class="param-row">
+            <div class="pr-key">participation_rate</div>
+            <div class="pr-desc">Share of population in labour force</div>
+            <div class="pr-val">0.650</div>
+          </div>
+          <div class="param-row">
+            <div class="pr-key">remote_capacity</div>
+            <div class="pr-desc">Fraction of jobs performable remotely</div>
+            <div class="pr-val">0.350</div>
+          </div>
+          <div class="param-row">
+            <div class="pr-key">remote_efficiency</div>
+            <div class="pr-desc">Remote productivity relative to on-site</div>
+            <div class="pr-val">0.800</div>
+          </div>
+          <div class="param-row">
+            <div class="pr-key">sick_productivity</div>
+            <div class="pr-desc">Productivity retained by infectious workers</div>
+            <div class="pr-val">0.100</div>
+          </div>
+          <div class="param-row">
+            <div class="pr-key">hospital_capacity</div>
+            <div class="pr-desc">Hospitalisation ceiling (population fraction)</div>
+            <div class="pr-val">0.050</div>
+          </div>
+          <div class="param-row">
+            <div class="pr-key">overflow_multiplier</div>
+            <div class="pr-desc">Fatality rate amplifier above capacity</div>
+            <div class="pr-val">3.0 ×</div>
+          </div>
+        </div>
+
+        <div class="compat-grid reveal reveal-d2">
+          <div class="compat-cell">
+            <div class="compat-name og">OG-Core</div>
+            <div class="compat-desc">Overlapping generations model. Receives labour_endowment_multiplier, Z, and start_year as JSON.</div>
+          </div>
+          <div class="compat-cell">
+            <div class="compat-name cge">CGE Model</div>
+            <div class="compat-desc">Computable general equilibrium. Receives percentage-change Δ% deltas for each shock vector.</div>
+          </div>
+          <div class="compat-cell">
+            <div class="compat-name sir">SIR</div>
+            <div class="compat-desc">Three-compartment model. S(t), I(t), R(t) accepted directly as EpiData time-series arrays.</div>
+          </div>
+          <div class="compat-cell">
+            <div class="compat-name seir">SEIR</div>
+            <div class="compat-desc">Extended with Exposed compartment. E(t) passed through to hospitalisation and quarantine calculations.</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- FOOTER                                     -->
+    <!-- ══════════════════════════════════════════ -->
+    <footer class="site-ftr">
+      <div class="ftr-inner">
+        <div class="ftr-l">
+          <span class="ftr-t id">OEECF</span>
+          <span class="ftr-t">Open Epidemiological-Economic Coupling Framework &nbsp;·&nbsp; v0.1.0 &nbsp;·&nbsp; MIT License</span>
+        </div>
+        <div class="ftr-r">
+          <span class="ftr-badge">Python 3.10+</span>
+          <span class="ftr-badge">NumPy · Pydantic</span>
+          <span class="ftr-badge">JSON · Δ%</span>
+        </div>
+      </div>
+    </footer>
+
+  </div><!-- .page -->
+
+  <script>
+    /* ── SIR simulation ─────────────────────────── */
+    function sir(β, γ, days) {
+      const S=[0.999], I=[0.001], R=[0];
+      for (let t=0; t<days-1; t++) {
+        const di = β*S[t]*I[t], dr = γ*I[t];
+        S.push(Math.max(0, S[t]-di));
+        I.push(Math.max(0, I[t]+di-dr));
+        R.push(Math.min(1, R[t]+dr));
+      }
+      return {S,I,R};
+    }
+
+    /* ── Shock calculations ──────────────────────── */
+    function calcShocks(I, R) {
+      const λ=0.65, rc=0.35, re=0.80, sp=0.10, φ=0.50, α=0.90, β=1-rc;
+      return I.map((inf,t) => {
+        const dead=R[t]*0.008, hosp=Math.min(inf*0.08,0.05), quar=inf*0.30;
+        const labour = Math.max(0,Math.min(1, 1-hosp-dead-α*inf-β*quar));
+        const wN=Math.max(0,1-inf-quar-dead)*λ, wR=quar*rc*λ, wS=inf*λ;
+        const tfp   = Math.max(0,Math.min(1, (wN+wR*re+wS*sp)/λ - inf*0.5));
+        const demand= Math.max(0.2,Math.min(1, 1-φ*inf-0.8*quar));
+        return {labour,tfp,demand};
+      });
+    }
+
+    /* ── Smooth SVG path (cubic Bezier) ─────────── */
+    function path(arr, W, H, lo, hi) {
+      const n=arr.length;
+      const pts=arr.map((v,i)=>({
+        x:(i/(n-1))*W,
+        y:H-((v-lo)/(hi-lo))*H
+      }));
+      let d=`M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`;
+      for (let i=1;i<pts.length;i++) {
+        const c1x=pts[i-1].x+(pts[i].x-pts[i-1].x)*0.45, c1y=pts[i-1].y;
+        const c2x=pts[i].x-(pts[i].x-pts[i-1].x)*0.45,   c2y=pts[i].y;
+        d+=` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${pts[i].x.toFixed(2)} ${pts[i].y.toFixed(2)}`;
+      }
+      return d;
+    }
+
+    /* ── Render shock SVG ───────────────────────── */
+    function renderGraph(elId, shockArr, epiArr, color) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const W=280, H=120, ns='http://www.w3.org/2000/svg';
+      const sub=(a,n)=>a.filter((_,i)=>i%n===0);
+      const sS=sub(shockArr,2), sE=sub(epiArr,2);
+      const epiMax=Math.max(...epiArr)*1.2;
+      const gid='g'+Math.random().toString(36).slice(2,8);
+
+      const defs=document.createElementNS(ns,'defs');
+      defs.innerHTML=`
+        <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+        </linearGradient>`;
+      el.appendChild(defs);
+
+      /* grid */
+      [0,0.25,0.5,0.75,1].forEach(v=>{
+        const y=H-v*H, ln=document.createElementNS(ns,'line');
+        [{k:'x1',v:0},{k:'x2',v:W},{k:'y1',v:y},{k:'y2',v:y},
+         {k:'stroke',v:'rgba(255,255,255,0.045)'},{k:'stroke-width',v:'1'}]
+          .forEach(({k,v})=>ln.setAttribute(k,v));
+        el.appendChild(ln);
+      });
+
+      /* epidemic curve (dashed) */
+      const epiPath=document.createElementNS(ns,'path');
+      [{k:'d',v:path(sE,W,H,0,epiMax)},{k:'stroke',v:'rgba(248,113,113,0.40)'},
+       {k:'stroke-width',v:'1'},{k:'stroke-dasharray',v:'3 3'},{k:'fill',v:'none'}]
+        .forEach(({k,v})=>epiPath.setAttribute(k,v));
+      el.appendChild(epiPath);
+
+      /* area */
+      const areaEl=document.createElementNS(ns,'path');
+      areaEl.setAttribute('d', path(sS,W,H,0,1.05)+` L ${W} ${H} L 0 ${H} Z`);
+      areaEl.setAttribute('fill',`url(#${gid})`);
+      el.appendChild(areaEl);
+
+      /* shock curve */
+      const shockEl=document.createElementNS(ns,'path');
+      [{k:'d',v:path(sS,W,H,0,1.05)},{k:'stroke',v:color},
+       {k:'stroke-width',v:'1.5'},{k:'fill',v:'none'}]
+        .forEach(({k,v})=>shockEl.setAttribute(k,v));
+      el.appendChild(shockEl);
+
+      /* peak dot */
+      const minIdx=sS.indexOf(Math.min(...sS));
+      const dotX=(minIdx/(sS.length-1))*W;
+      const dotY=H-(Math.min(...sS)/1.05)*H;
+      const dot=document.createElementNS(ns,'circle');
+      [{k:'cx',v:dotX.toFixed(2)},{k:'cy',v:dotY.toFixed(2)},
+       {k:'r',v:'3'},{k:'fill',v:color},{k:'opacity',v:'0.9'}]
+        .forEach(({k,v})=>dot.setAttribute(k,v));
+      el.appendChild(dot);
+
+      /* animate paths */
+      [shockEl, epiPath].forEach((p,delay)=>{
+        const len=p.getTotalLength();
+        p.style.strokeDasharray=len;
+        p.style.strokeDashoffset=len;
+        setTimeout(()=>{
+          p.style.transition=`stroke-dashoffset 2.6s cubic-bezier(0.16,1,0.3,1)`;
+          p.style.strokeDashoffset='0';
+        }, 100+delay*200);
+      });
+    }
+
+    /* ── Counter ────────────────────────────────── */
+    function count(el, target, delay=0, dur=1800) {
+      if (!el) return;
+      setTimeout(()=>{
+        const t0=performance.now();
+        const tick=now=>{
+          const p=Math.min((now-t0)/dur,1);
+          const e=1-Math.pow(1-p,3);
+          el.textContent=(1+(target-1)*e).toFixed(4);
+          if(p<1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }, delay);
+    }
+
+    /* ── IntersectionObserver: reveal ──────────── */
+    const revealObs = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+    }, {threshold:0.08});
+    document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+
+    /* ── IntersectionObserver: progress rail ───── */
+    const sections = document.querySelectorAll('section[id]');
+    const dots     = document.querySelectorAll('.rail-dot');
+    const railObs  = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          dots.forEach(d=>d.classList.remove('active'));
+          const d=document.querySelector(`.rail-dot[data-sec="${e.target.id}"]`);
+          if(d) d.classList.add('active');
+        }
+      });
+    }, {threshold:0.35});
+    sections.forEach(s=>railObs.observe(s));
+
+    /* ── Boot ───────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded',()=>{
+      const {I,R} = sir(0.30, 0.10, 180);
+      const sh    = calcShocks(I,R);
+      const labArr = sh.map(s=>s.labour);
+      const tfpArr = sh.map(s=>s.tfp);
+      const demArr = sh.map(s=>s.demand);
+      const peakI  = I.indexOf(Math.max(...I));
+
+      const lPeak=labArr[peakI], zPeak=tfpArr[peakI], dPeak=demArr[peakI];
+
+      /* Hero counters */
+      count(document.getElementById('hv-l'), lPeak, 400);
+      count(document.getElementById('hv-z'), zPeak, 600);
+      count(document.getElementById('hv-d'), dPeak, 800);
+
+      /* Shock graphs */
+      renderGraph('g-labour', labArr, I, '#c8a84b');
+      renderGraph('g-tfp',    tfpArr, I, '#4a9eff');
+      renderGraph('g-demand', demArr, I, '#2dd4bf');
+
+      /* Graph peak labels */
+      const fmt=v=>`${(v).toFixed(4)} @ day ${peakI}`;
+      document.getElementById('gm-l').textContent = fmt(lPeak);
+      document.getElementById('gm-z').textContent = fmt(zPeak);
+      document.getElementById('gm-d').textContent = fmt(dPeak);
+    });
+  </script>
+</body>
+</html>
