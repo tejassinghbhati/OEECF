@@ -5,7 +5,8 @@
       "Bash(Select-Object -First 100 FullName)",
       "Bash(Sort-Object)",
       "PowerShell(Get-ChildItem -Path \"e:\\\\OEECF\" -Recurse | ForEach-Object { $_.FullName } | Sort-Object)",
-      "Bash(start \"e:\\\\OEECF\\\\frontend\\\\index.html\")"
+      "Bash(start \"e:\\\\OEECF\\\\frontend\\\\index.html\")",
+      "Bash(dir \"e:\\\\OEECF\" /b)"
     ]
   }
 }
